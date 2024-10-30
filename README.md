@@ -1,4 +1,4 @@
-# Buber-Dinner
+## BuberDinner
 
 ### About applications
 Application is written in .NET 6.0 with C# using WebAPI technology. This solutions follows Clean Architecture principles and Domain-Driven Design principles. It contains 4 layers:
@@ -28,4 +28,3 @@ docker-compose up -d --build
 ```
 
 In both ways of running the application, you have to use migrations for creating tables to fully use the application.
-# buber-dinner

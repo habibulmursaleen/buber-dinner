@@ -1,53 +1,53 @@
-using BuberDinner.Application.Services.Authentication;
-using BuberDinner.Contracts.Authentication;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using BuberDinner.Contracts.Authentication;
+using BuberDinner.Domain.Common.Errors;
+using MediatR;
+using BuberDinner.Application.Authentication.Commands.Register;
+using BuberDinner.Application.Authentication.Queries.Login;
+using MapsterMapper;
+using Microsoft.AspNetCore.Authorization;
 
-namespace BuberDinner.Api.Controllers
+namespace BuberDinner.Api.Controllers;
+
+[AllowAnonymous]
+[Route("authentication")]
+public class AuthenticationController : ApiController
 {
-    [ApiController]
-    [Route("api/v1/auth")]
-    public class AuthenticationController : ControllerBase
+    private readonly ISender _mediator;
+    private readonly IMapper _mapper;
+
+    public AuthenticationController(ISender mediator, IMapper mapper)
     {
-        private readonly IAuthenticationService _authenticationService;
+        _mediator = mediator;
+        _mapper = mapper;
+    }
 
-        public AuthenticationController(IAuthenticationService authenticationService)
+    [Route("register")]
+    public async Task<IActionResult> Register(RegisterRequest request)
+    {
+        var command = _mapper.Map<RegisterCommand>(request);
+        var authenticationResult = await _mediator.Send(command);
+
+        return authenticationResult.Match(
+            authenticationResult => Ok(_mapper.Map<AuthenticationResponse>(authenticationResult)),
+            errors => Problem(errors));
+    }
+
+    [Route("login")]
+    public async Task<IActionResult> Login(LoginRequest request)
+    {
+        var query = _mapper.Map<LoginQuery>(request);
+        var authenticationResult = await _mediator.Send(query);
+
+        if(authenticationResult.IsError && authenticationResult.FirstError == Errors.Authentication.InvalidCredentials)
         {
-            _authenticationService = authenticationService;
+            return Problem(
+                statusCode: StatusCodes.Status401Unauthorized,
+                title: authenticationResult.FirstError.Description);
         }
 
-        [HttpPost("register")]
-        public IActionResult Register(RegisterRequest request)
-        {
-            var authResult = _authenticationService.Register(request.FirstName, request.LastName, request.Email, request.Password);
-
-            var response = new AuthenticationResponse
-            (
-                authResult.User.Id,
-                authResult.User.FirstName,
-                authResult.User.LastName,
-                authResult.User.Email,
-                authResult.Token
-            );
-
-            return Ok(response);
-        }
-
-        [HttpPost("login")]
-        public IActionResult Login(LoginRequest request)
-        {
-            var authResult = _authenticationService.Login(request.Email, request.Password);
-
-            var response = new AuthenticationResponse
-            (
-                authResult.User.Id,
-                authResult.User.FirstName,
-                authResult.User.LastName,
-                authResult.User.Email,
-                authResult.Token
-            );
-
-            return Ok(response);
-        }
+        return authenticationResult.Match(
+            authenticationResult => Ok(_mapper.Map<AuthenticationResponse>(authenticationResult)),
+            errors => Problem(errors));
     }
 }

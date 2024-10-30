@@ -1,11 +1,11 @@
-@host=http://localhost:5254
+@host=https://localhost:7122
 
-POST {{host}}/api/v1/auth/register
+POST {{host}}/authentication/register
 Content-Type: application/json
 
 {
-    "firstName": "John111",
-    "lastName": "Doe111",
-    "email": "John111@example.com",
-    "password": "johnnyBo"
+    "firstName": "Tajma",
+    "lastName": "Heinz",
+    "email": "t.heinz@example.com",
+    "password": "Pwd12345."
 }
