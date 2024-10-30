@@ -11,10 +11,15 @@ var builder = WebApplication.CreateBuilder(args);
 
 var app = builder.Build();
 {
+    if (app.Environment.EnvironmentName == "Development")
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "BuberDinner.Api v1"));
+    }
     app.UseExceptionHandler("/error");
     app.UseHttpsRedirection();
     app.UseAuthentication();
     app.UseAuthorization();
     app.MapControllers();
-    app.Run();
+    await app.RunAsync();
 }
